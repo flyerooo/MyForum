@@ -1,4 +1,6 @@
+import json
 from urllib.parse import urlencode
+
 from tornado import httpclient
 from tornado.httpclient import HTTPRequest
 
@@ -18,7 +20,7 @@ class AsyncYunPian:
             'text': text
         }))
         res =await http_client.fetch(post_request)
-        print(res.body.decode('utf8'))
+        return json.loads(res.body.decode('utf8'))
 
 
 if __name__ == '__main__':
