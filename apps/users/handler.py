@@ -55,7 +55,7 @@ class RegisterHandler(RedisHandler):
     async def post(self, *args, **kwargs):
         re_data = {}
 
-        param = self.request.body.decode("utf-8")
+        param = self.request.body.decode("utf8")
         param = json.loads(param)
         register_form = RegisterForm.from_json(param)
         if register_form.validate():
@@ -79,8 +79,8 @@ class RegisterHandler(RedisHandler):
                     re_data["id"] = user.id
         else:
             self.set_status(400)
-            for field in register_form.erros:
-                re_data[field] = register_form[field][0]
+            for field in register_form.errors:
+                re_data[field] = register_form.errors[field][0]
 
         self.finish(re_data)
 
