@@ -28,14 +28,15 @@ class LoginHandler(RedisHandler):
                 user = await self.application.objects.get(User, mobile=mobile)
                 if not user.password.check_password(password):
                     self.set_status(400)
+                    self.set_cookie()
                     re_data["non_fields"] = "用户名或密码错误"
                 else:
-                    #登录成功
-                    #生成json web token
+                    # 登录成功
+                    # 生成json web token
                     payload = {
-                        "id":user.id,
-                        "nick_name":user.nick_name,
-                        "exp":datetime.utcnow()
+                        "id": user.id,
+                        "nick_name": user.nick_name,
+                        "exp": datetime.utcnow()  # 因为内部检查的时候也是用的utc时间
                     }
                     token = jwt.encode(payload, self.settings["secret_key"], algorithm='HS256')
                     re_data["id"] = user.id
@@ -51,6 +52,7 @@ class LoginHandler(RedisHandler):
 
             self.finish(re_data)
 
+
 class RegisterHandler(RedisHandler):
     async def post(self, *args, **kwargs):
         re_data = {}
@@ -63,13 +65,13 @@ class RegisterHandler(RedisHandler):
             code = register_form.code.data
             password = register_form.password.data
 
-            #验证码是否正确
+            # 验证码是否正确
             redis_key = "{}_{}".format(mobile, code)
             if not self.redis_conn.get(redis_key):
                 self.set_status(400)
                 re_data["code"] = "验证码错误或者失效"
             else:
-                #验证用户是否存在
+                # 验证用户是否存在
                 try:
                     existed_users = await self.application.objects.get(User, mobile=mobile)
                     self.set_status(400)
@@ -111,10 +113,10 @@ class SmsHandler(RedisHandler):
             re_json = await yun_pian.send_single_sms(code, mobile)
             if re_json["code"] != 0:
                 self.set_status(400)
-                re_data["mobile"] = re_json["msg"] # 直接返回云片网错误原因
+                re_data["mobile"] = re_json["msg"]  # 直接返回云片网错误原因
             else:
-                #将验证码写入到redis中
-                self.redis_conn.set("{}_{}".format(mobile,code), 1, 10*60)
+                # 将验证码写入到redis中
+                self.redis_conn.set("{}_{}".format(mobile, code), 1, 10 * 60)
         else:
             self.set_status(400)
             for field in sms_form.errors:

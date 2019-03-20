@@ -1,0 +1,1 @@
+from apps.community.handler import add
